@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Reference Include="BoneLib">
+	  <HintPath>Managed\BoneLib.dll</HintPath>
+	</Reference>
+	<Reference Include="Il2CppSLZ.Algorithms">
+	  <HintPath>Managed\Il2CppSLZ.Algorithms.dll</HintPath>
+	</Reference>
+	<Reference Include="Il2CppSLZ.Marrow">
+	  <HintPath>Managed\Il2CppSLZ.Marrow.dll</HintPath>
+	</Reference>
+	<Reference Include="LabFusion">
+	  <HintPath>..\..\Steam\steamapps\common\BONELAB\Mods\LabFusion.dll</HintPath>
+	</Reference>
+	<Reference Include="MelonLoader">
+	  <HintPath>D:\Steam\steamapps\common\BONELAB\MelonLoader\net6\MelonLoader.dll</HintPath>
+	</Reference>
+	<Reference Include="SLZ.Marrow">
+	  <HintPath>..\..\ZCHAMBER\Library\Bee\artifacts\1300b0aP.dag\SLZ.Marrow.ref.dll</HintPath>
+	</Reference>
+	<Reference Include="UnityEngine">
+	  <HintPath>D:\Steam\steamapps\common\BONELAB\MelonLoader\Il2CppAssemblies\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+	  <HintPath>D:\Steam\steamapps\common\BONELAB\MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+  
+	  <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>D:\Steam\steamapps\common\BONELAB\Melonloader\net6\Il2CppInterop.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Il2Cppmscorlib">
+      <HintPath>D:\Steam\steamapps\common\BONELAB\MelonLoader\Il2CppAssemblies\Il2Cppmscorlib.dll</HintPath>
+    </Reference>
+</ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;D:\Steam\steamapps\common\BONELAB\Mods\$(TargetFileName)&quot;" />
+  </Target>
+
+</Project>

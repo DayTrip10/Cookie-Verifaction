@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Everyday Blower\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{FE8F5B46-13B0-463D-9132-46096B8B9104}|Everyday Blower\\Everyday Blower.csproj|d:\\everyday blower\\everyday blower\\bonemenucreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FE8F5B46-13B0-463D-9132-46096B8B9104}|Everyday Blower\\Everyday Blower.csproj|solutionrelative:everyday blower\\bonemenucreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "BoneMenuCreator.cs",
+              "DocumentMoniker": "D:\\Everyday Blower\\Everyday Blower\\BoneMenuCreator.cs",
+              "RelativeDocumentMoniker": "Everyday Blower\\BoneMenuCreator.cs",
+              "ToolTip": "D:\\Everyday Blower\\Everyday Blower\\BoneMenuCreator.cs",
+              "RelativeToolTip": "Everyday Blower\\BoneMenuCreator.cs",
+              "ViewState": "AQIAABgAAAAAAAAAAAA5wDEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-07-24T19:46:16.403Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

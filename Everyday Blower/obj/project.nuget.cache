@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "jLa5ihIcrqaZ8wk+fWnq1on6yPdiXQQGrJotpAU60Ebw336YLNs1/LKcZah2iVDIfUUfYxZkGj//I3f4nfiKTg==",
+  "success": true,
+  "projectFilePath": "D:\\Everyday Blower\\Everyday Blower\\Everyday Blower.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\hayde\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.30\\microsoft.windowsdesktop.app.ref.6.0.30.nupkg.sha512",
+    "C:\\Users\\hayde\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.30\\microsoft.netcore.app.ref.6.0.30.nupkg.sha512",
+    "C:\\Users\\hayde\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.30\\microsoft.aspnetcore.app.ref.6.0.30.nupkg.sha512"
+  ],
+  "logs": []
+}
