@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
 namespace Expressions.BoneMenu
 {
     public static partial class BoneMenuCreator
@@ -15,6 +14,7 @@ namespace Expressions.BoneMenu
         private static List<string> _blendShapeNames = new List<string>();  // List to store blend shape names
         private const string PreferenceCategory = "Expressions";
         private const string PreferenceKey = "SavedBlendShapes";
+        private static bool _isDeleteMode = false;  // Track whether we are in delete mode
 
         #region MENU CATEGORIES
 
@@ -53,13 +53,39 @@ namespace Expressions.BoneMenu
             });
         }
 
-        // Create a toggle for the blend shape
+        // Create a toggle for the blend shape or delete it if in delete mode
         public static void CreateBlendShapeToggle(Page page, string blendShapeName)
         {
-            // Create a toggle button for the blend shape
-            page.CreateBool(blendShapeName, Color.white, false, (isEnabled) =>
+            if (_isDeleteMode)
             {
-                ToggleBlendShape(blendShapeName, isEnabled);
+                // Create a delete button
+                page.CreateFunction($"Delete {blendShapeName}", Color.red, () =>
+                {
+                    _blendShapeNames.Remove(blendShapeName);
+                    SaveBlendShapes();
+                    RefreshPage();
+                });
+            }
+            else
+            {
+                // Create a toggle button for the blend shape
+                page.CreateBool(blendShapeName, Color.white, false, (isEnabled) =>
+                {
+                    ToggleBlendShape(blendShapeName, isEnabled);
+                });
+            }
+        }
+
+        // Create a button to toggle delete mode
+        public static void CreateDeleteModeButton(Page page)
+        {
+            string buttonText = _isDeleteMode ? "Exit Delete Mode" : "Enter Delete Mode";
+            Color buttonColor = _isDeleteMode ? Color.gray : Color.red;
+
+            page.CreateFunction(buttonText, buttonColor, () =>
+            {
+                _isDeleteMode = !_isDeleteMode;
+                RefreshPage();  // Refresh the page to update buttons
             });
         }
 
@@ -108,6 +134,9 @@ namespace Expressions.BoneMenu
             // Create the input field with add button for the blend shape name
             CreateStringInputWithAddButton(_mainPage);
 
+            // Create the delete mode button
+            CreateDeleteModeButton(_mainPage);
+
             // Populate the existing blend shape toggles
             foreach (var blendShapeName in _blendShapeNames)
             {
@@ -117,7 +146,7 @@ namespace Expressions.BoneMenu
 
         private static void RefreshPage()
         {
-            // Re-populate the main page to reflect the newly added blend shape
+            // Re-populate the main page to reflect the newly added blend shape or updated delete mode
             OnPopulateMainPage();
         }
 
@@ -134,8 +163,8 @@ namespace Expressions.BoneMenu
         private static void ToggleBlendShapeInGameObject(GameObject gameObject, string blendShapeName, bool isEnabled)
         {
             // Get the SkinnedMeshRenderer component from the GameObject
-            SkinnedMeshRenderer skinnedMeshRenderer = gameObject.GetComponent<SkinnedMeshRenderer>();
-            if (skinnedMeshRenderer != null)
+            var skinnedMeshRenderer = gameObject.GetComponent<SkinnedMeshRenderer>();
+            if (skinnedMeshRenderer)  // Simplified check for the component's existence
             {
                 // Find the blend shape index by name
                 int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
