@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using MelonLoader;
 using BoneLib.BoneMenu;
-using System;  // Add this using directive to include Action<> and other System types
+using System;  // Required for Action<>
 using System.Collections.Generic;
 
 namespace Expressions.BoneMenu
@@ -28,7 +28,7 @@ namespace Expressions.BoneMenu
         {
             if (_skinnedMeshRenderer == null)
             {
-                MelonLogger.Error("SkinnedMeshRenderer is not assigned.");
+                LogError("SkinnedMeshRenderer is not assigned.");
                 return;
             }
 
@@ -54,7 +54,7 @@ namespace Expressions.BoneMenu
                 }
                 else
                 {
-                    MelonLogger.Msg("Blend shape name is empty.");
+                    LogMessage("Blend shape name is empty.");
                 }
             });
         }
@@ -63,13 +63,13 @@ namespace Expressions.BoneMenu
 
         public static void OnPrepareMainPage()
         {
-            MelonLogger.Msg("Preparing the Expressions page in BoneMenu...");
+            LogMessage("Preparing the Expressions page in BoneMenu...");
 
             // Create the main page
             _mainPage = Page.Root.CreatePage("Expressions", Color.blue);
             if (_mainPage == null)
             {
-                MelonLogger.Error("Failed to create Expressions page.");
+                LogError("Failed to create Expressions page.");
                 return;
             }
 
@@ -77,7 +77,7 @@ namespace Expressions.BoneMenu
             _skinnedMeshRenderer = GameObject.Find("YourSkinnedMeshRendererObject")?.GetComponent<SkinnedMeshRenderer>();
             if (_skinnedMeshRenderer == null)
             {
-                MelonLogger.Error("SkinnedMeshRenderer not found. Please check the GameObject name.");
+                LogError("SkinnedMeshRenderer not found. Please check the GameObject name.");
             }
         }
 
@@ -85,12 +85,12 @@ namespace Expressions.BoneMenu
         {
             if (_mainPage != null)
             {
-                MelonLogger.Msg("Opening the Expressions page...");
+                LogMessage("Opening the Expressions page...");
                 Menu.OpenPage(_mainPage);
             }
             else
             {
-                MelonLogger.Error("Main page is null, cannot open Expressions page.");
+                LogError("Main page is null, cannot open Expressions page.");
             }
         }
 
@@ -98,7 +98,7 @@ namespace Expressions.BoneMenu
         {
             if (_mainPage == null)
             {
-                MelonLogger.Error("Cannot populate a null main page.");
+                LogError("Cannot populate a null main page.");
                 return;
             }
 
@@ -123,17 +123,30 @@ namespace Expressions.BoneMenu
                 if (blendShapeIndex >= 0)
                 {
                     _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
-                    MelonLogger.Msg($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
+                    LogMessage($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
                 }
                 else
                 {
-                    MelonLogger.Error($"Blend Shape '{blendShapeName}' not found.");
+                    LogError($"Blend Shape '{blendShapeName}' not found.");
                 }
             }
             else
             {
-                MelonLogger.Error("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
+                LogError("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
             }
+        }
+
+        // Debug-only logging
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogMessage(string message)
+        {
+            MelonLogger.Msg(message);
+        }
+
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogError(string message)
+        {
+            MelonLogger.Error(message);
         }
     }
 
@@ -141,30 +154,28 @@ namespace Expressions.BoneMenu
     {
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("Expressions Mod Initialized");
             BoneMenuCreator.OnPrepareMainPage();
         }
 
         public override void OnLateInitializeMelon()
         {
-            MelonLogger.Msg("Late Initialization of Expressions Mod");
             BoneMenuCreator.OnPopulateMainPage();
             BoneMenuCreator.OpenMainPage();
         }
 
         public override void OnSceneWasLoaded(int buildindex, string sceneName)
         {
-            MelonLogger.Msg($"Scene Loaded: {sceneName} (Index: {buildindex})");
+            // Scene Loaded
         }
 
         public override void OnSceneWasInitialized(int buildindex, string sceneName)
         {
-            MelonLogger.Msg($"Scene Initialized: {sceneName} (Index: {buildindex})");
+            // Scene Initialized
         }
 
         public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
         {
-            MelonLogger.Msg($"Scene Unloaded: {sceneName} (Index: {buildIndex})");
+            // Scene Unloaded
         }
 
         public override void OnUpdate()
@@ -189,17 +200,17 @@ namespace Expressions.BoneMenu
 
         public override void OnApplicationQuit()
         {
-            MelonLogger.Msg("Expressions Mod is shutting down");
+            // Application quitting
         }
 
         public override void OnPreferencesSaved()
         {
-            MelonLogger.Msg("Preferences Saved");
+            // Preferences Saved
         }
 
         public override void OnPreferencesLoaded()
         {
-            MelonLogger.Msg("Preferences Loaded");
+            // Preferences Loaded
         }
     }
 }
