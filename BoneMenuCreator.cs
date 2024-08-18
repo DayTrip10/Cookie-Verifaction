@@ -59,6 +59,14 @@ namespace Expressions.BoneMenu
             });
         }
 
+        public static void CreateRefreshButton(Page page)
+        {
+            page.CreateFunction("Refresh Toggles", Color.yellow, () =>
+            {
+                RefreshBlendShapeToggles(_mainPage);
+            });
+        }
+
         #endregion
 
         public static void OnPrepareMainPage()
@@ -113,6 +121,21 @@ namespace Expressions.BoneMenu
 
             // Create the button to add a new blend shape slider for the blend shape
             CreateAddBlendShapeButton(_mainPage);
+
+            // Create the refresh button to reload the blend shape toggles
+            CreateRefreshButton(_mainPage);
+
+            // Populate the existing blend shape toggles
+            RefreshBlendShapeToggles(_mainPage);
+        }
+
+        private static void RefreshBlendShapeToggles(Page page)
+        {
+            // Clear existing blend shape toggles
+            foreach (var blendShapeName in _blendShapeToggles.Keys)
+            {
+                CreateBlendShapeSlider(page, blendShapeName);
+            }
         }
 
         private static void SetBlendShapeWeight(string blendShapeName, float weight)
