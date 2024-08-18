@@ -3,6 +3,7 @@ using MelonLoader;
 using BoneLib.BoneMenu;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Expressions.BoneMenu
 {
@@ -11,6 +12,8 @@ namespace Expressions.BoneMenu
         private static Page _mainPage = null;
         private static string _blendShapeName = "";
         private static List<string> _blendShapeNames = new List<string>();  // List to store blend shape names
+        private const string PreferenceCategory = "BlendShapes";
+        private const string PreferenceKey = "SavedBlendShapes";
 
         #region MENU CATEGORIES
 
@@ -39,6 +42,7 @@ namespace Expressions.BoneMenu
                 if (!string.IsNullOrEmpty(_blendShapeName) && !_blendShapeNames.Contains(_blendShapeName))
                 {
                     _blendShapeNames.Add(_blendShapeName);
+                    SaveBlendShapes();
                     RefreshPage();
                 }
                 else
@@ -71,6 +75,9 @@ namespace Expressions.BoneMenu
                 LogError("Failed to create Expressions page.");
                 return;
             }
+
+            // Load saved blend shapes
+            LoadBlendShapes();
         }
 
         public static void OpenMainPage()
@@ -140,6 +147,26 @@ namespace Expressions.BoneMenu
             foreach (Transform child in obj.transform)
             {
                 ToggleBlendShapeInGameObject(child.gameObject, blendShapeName, isEnabled);
+            }
+        }
+
+        private static void SaveBlendShapes()
+        {
+            string serializedBlendShapes = string.Join(",", _blendShapeNames);
+            MelonPreferences.SetEntryValue(PreferenceCategory, PreferenceKey, serializedBlendShapes);
+            MelonPreferences.Save();
+            LogMessage("Blend shapes saved.");
+        }
+
+        private static void LoadBlendShapes()
+        {
+            var preferencesCategory = MelonPreferences.CreateCategory(PreferenceCategory);
+            var savedBlendShapes = preferencesCategory.CreateEntry(PreferenceKey, "");
+
+            if (!string.IsNullOrEmpty(savedBlendShapes.Value))
+            {
+                _blendShapeNames = savedBlendShapes.Value.Split(',').ToList();
+                LogMessage("Blend shapes loaded.");
             }
         }
 
