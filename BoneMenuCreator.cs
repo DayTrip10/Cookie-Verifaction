@@ -12,7 +12,7 @@ namespace Expressions.BoneMenu
         private static Page _mainPage = null;
         private static string _blendShapeName = "";
         private static List<string> _blendShapeNames = new List<string>();  // List to store blend shape names
-        private const string PreferenceCategory = "BlendShapes";
+        private const string PreferenceCategory = "Expressions";
         private const string PreferenceKey = "SavedBlendShapes";
 
         #region MENU CATEGORIES
