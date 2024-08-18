@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using MelonLoader;
 using BoneLib.BoneMenu;
-using System;  // Required for Action<>
+using System;
 using System.Collections.Generic;
 
 namespace Expressions.BoneMenu
@@ -11,7 +11,7 @@ namespace Expressions.BoneMenu
         private static Page _mainPage = null;
         private static SkinnedMeshRenderer _skinnedMeshRenderer;
         private static string _blendShapeName = "";
-        private static Dictionary<string, bool> _blendShapeToggles = new Dictionary<string, bool>();
+        private static Dictionary<string, float> _blendShapeToggles = new Dictionary<string, float>();
 
         #region MENU CATEGORIES
 
@@ -24,7 +24,7 @@ namespace Expressions.BoneMenu
             });
         }
 
-        public static void CreateBoolToggle(Page page, string blendShapeName)
+        public static void CreateBlendShapeSlider(Page page, string blendShapeName)
         {
             if (_skinnedMeshRenderer == null)
             {
@@ -34,23 +34,23 @@ namespace Expressions.BoneMenu
 
             if (!_blendShapeToggles.ContainsKey(blendShapeName))
             {
-                _blendShapeToggles[blendShapeName] = false;
+                _blendShapeToggles[blendShapeName] = 0f; // Initialize the blend shape to 0%
             }
 
-            var element = page.CreateBool(blendShapeName, Color.white, _blendShapeToggles[blendShapeName], (v) =>
+            var element = page.CreateFloat(blendShapeName, Color.white, _blendShapeToggles[blendShapeName], 0f, 100f, 1f, (v) =>
             {
                 _blendShapeToggles[blendShapeName] = v;
-                ToggleBlendShape(blendShapeName, v);
+                SetBlendShapeWeight(blendShapeName, v);
             });
         }
 
-        public static void CreateAddToggleButton(Page page)
+        public static void CreateAddBlendShapeButton(Page page)
         {
             page.CreateFunction("Add BlendShape Toggle", Color.green, () =>
             {
                 if (!string.IsNullOrEmpty(_blendShapeName))
                 {
-                    CreateBoolToggle(_mainPage, _blendShapeName);
+                    CreateBlendShapeSlider(_mainPage, _blendShapeName);
                 }
                 else
                 {
@@ -111,19 +111,19 @@ namespace Expressions.BoneMenu
                 _blendShapeName = v;
             });
 
-            // Create the button to add a new toggle for the blend shape
-            CreateAddToggleButton(_mainPage);
+            // Create the button to add a new blend shape slider for the blend shape
+            CreateAddBlendShapeButton(_mainPage);
         }
 
-        private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
+        private static void SetBlendShapeWeight(string blendShapeName, float weight)
         {
             if (_skinnedMeshRenderer != null)
             {
                 int blendShapeIndex = _skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
                 if (blendShapeIndex >= 0)
                 {
-                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
-                    LogMessage($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
+                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
+                    LogMessage($"Blend Shape '{blendShapeName}' set to {weight}%.");
                 }
                 else
                 {
@@ -132,21 +132,20 @@ namespace Expressions.BoneMenu
             }
             else
             {
-                LogError("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
+                LogError("Cannot set Blend Shape weight because SkinnedMeshRenderer is null.");
             }
         }
 
-        // Debug-only logging
-        [System.Diagnostics.Conditional("DEBUG")]
         private static void LogMessage(string message)
         {
-            MelonLogger.Msg(message);
+#if DEBUG
+                MelonLogger.Msg(message);
+#endif
         }
 
-        [System.Diagnostics.Conditional("DEBUG")]
         private static void LogError(string message)
         {
-            MelonLogger.Error(message);
+            MelonLogger.Error(message); // Always show errors
         }
     }
 
