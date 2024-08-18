@@ -1,184 +1,205 @@
 ﻿using UnityEngine;
 using MelonLoader;
-using System;
 using BoneLib.BoneMenu;
+using System;  // Add this using directive to include Action<> and other System types
+using System.Collections.Generic;
 
-namespace Blower.BoneMenu
+namespace Expressions.BoneMenu
 {
-    public interface IBlowerPref<T>
-    {
-        T GetValue();
-        void SetValue(T value);
-        event Action<T> OnValueChanged;
-    }
-
-    public class BlowerBoolPref : IBlowerPref<bool>
-    {
-        private bool _value;
-        public event Action<bool> OnValueChanged;
-        private readonly MelonPreferences_Entry<bool> _preferenceEntry;
-
-        public BlowerBoolPref(string category, string key, bool defaultValue)
-        {
-            var preferencesCategory = MelonPreferences.CreateCategory(category);
-            _preferenceEntry = preferencesCategory.CreateEntry(key, defaultValue);
-            _value = _preferenceEntry.Value;
-        }
-
-        public bool GetValue()
-        {
-            return _value;
-        }
-
-        public void SetValue(bool value)
-        {
-            if (_value != value)
-            {
-                _value = value;
-                _preferenceEntry.Value = value;
-                OnValueChanged?.Invoke(_value);
-            }
-        }
-    }
-
     public static partial class BoneMenuCreator
     {
         private static Page _mainPage = null;
-        private static BlowerBoolPref _modEnabledPref;
-
-        public static void RemoveEmptyPage(Page parent, Page child, Element link)
-        {
-            if (child.Elements.Count <= 0)
-            {
-                parent.Remove(link);
-            }
-        }
+        private static SkinnedMeshRenderer _skinnedMeshRenderer;
+        private static string _blendShapeName = "";
+        private static Dictionary<string, bool> _blendShapeToggles = new Dictionary<string, bool>();
 
         #region MENU CATEGORIES
-        public static void CreateBytePreference(Page page, string name, byte increment, byte minValue, byte maxValue, IBlowerPref<byte> pref)
+
+        public static void CreateStringInput(Page page, string name, Action<string> onValueChanged)
         {
-            var element = page.CreateInt(name, Color.white, increment, pref.GetValue(), minValue, maxValue, (v) =>
+            var element = page.CreateString(name, Color.white, _blendShapeName, (v) =>
             {
-                pref.SetValue((byte)v);
-            });
-
-            pref.OnValueChanged += (v) =>
-            {
-                element.Value = v;
-            };
-        }
-
-        public static void CreateFloatPreference(Page page, string name, float increment, float minValue, float maxValue, IBlowerPref<float> pref)
-        {
-            var element = page.CreateFloat(name, Color.white, increment, pref.GetValue(), minValue, maxValue, (v) =>
-            {
-                pref.SetValue(v);
-            });
-
-            pref.OnValueChanged += (v) =>
-            {
-                element.Value = v;
-            };
-        }
-
-        public static void CreateBoolPreference(Page page, string name, IBlowerPref<bool> pref)
-        {
-            var element = page.CreateBool(name, Color.white, pref.GetValue(), (v) =>
-            {
-                pref.SetValue(v);
-            });
-
-            pref.OnValueChanged += (v) =>
-            {
-                element.Value = v;
-            };
-        }
-
-        public static void CreateEnumPreference<TEnum>(Page page, string name, IBlowerPref<TEnum> pref) where TEnum : Enum
-        {
-            var element = page.CreateEnum(name, Color.white, pref.GetValue(), (v) =>
-            {
-                pref.SetValue((TEnum)v);
-            });
-
-            pref.OnValueChanged += (v) =>
-            {
-                element.Value = v;
-            };
-        }
-
-        public static void CreateStringPreference(Page page, string name, IBlowerPref<string> pref, Action<string> onValueChanged = null, int maxLength = 50)
-        {
-            string currentValue = pref.GetValue();
-            var element = page.CreateString(name, Color.white, currentValue, (v) =>
-            {
-                pref.SetValue(v);
-            });
-
-            pref.OnValueChanged += (v) =>
-            {
-                element.Value = v;
-
+                _blendShapeName = v;
                 onValueChanged?.Invoke(v);
-            };
-        }
-
-        public static void CreateCrashButton(Page page)
-        {
-            page.CreateFunction("Crash Game for All", Color.red, () =>
-            {
-                // Deliberately cause a crash by accessing an invalid array index
-                int[] arr = new int[1];
-                Debug.Log(arr[2]); // This will cause an IndexOutOfRangeException and crash the game
             });
         }
+
+        public static void CreateBoolToggle(Page page, string blendShapeName)
+        {
+            if (_skinnedMeshRenderer == null)
+            {
+                MelonLogger.Error("SkinnedMeshRenderer is not assigned.");
+                return;
+            }
+
+            if (!_blendShapeToggles.ContainsKey(blendShapeName))
+            {
+                _blendShapeToggles[blendShapeName] = false;
+            }
+
+            var element = page.CreateBool(blendShapeName, Color.white, _blendShapeToggles[blendShapeName], (v) =>
+            {
+                _blendShapeToggles[blendShapeName] = v;
+                ToggleBlendShape(blendShapeName, v);
+            });
+        }
+
+        public static void CreateAddToggleButton(Page page)
+        {
+            page.CreateFunction("Add BlendShape Toggle", Color.green, () =>
+            {
+                if (!string.IsNullOrEmpty(_blendShapeName))
+                {
+                    CreateBoolToggle(_mainPage, _blendShapeName);
+                }
+                else
+                {
+                    MelonLogger.Msg("Blend shape name is empty.");
+                }
+            });
+        }
+
         #endregion
 
         public static void OnPrepareMainPage()
         {
-            _mainPage = Page.Root.CreatePage("Blower", Color.white);
-            _modEnabledPref = new BlowerBoolPref("Blower", "ModEnabled", true); // Initialize with default value
+            MelonLogger.Msg("Preparing the Expressions page in BoneMenu...");
+
+            // Create the main page
+            _mainPage = Page.Root.CreatePage("Expressions", Color.blue);
+            if (_mainPage == null)
+            {
+                MelonLogger.Error("Failed to create Expressions page.");
+                return;
+            }
+
+            // Try to find the SkinnedMeshRenderer
+            _skinnedMeshRenderer = GameObject.Find("YourSkinnedMeshRendererObject")?.GetComponent<SkinnedMeshRenderer>();
+            if (_skinnedMeshRenderer == null)
+            {
+                MelonLogger.Error("SkinnedMeshRenderer not found. Please check the GameObject name.");
+            }
         }
 
         public static void OpenMainPage()
         {
-            Menu.OpenPage(_mainPage);
+            if (_mainPage != null)
+            {
+                MelonLogger.Msg("Opening the Expressions page...");
+                Menu.OpenPage(_mainPage);
+            }
+            else
+            {
+                MelonLogger.Error("Main page is null, cannot open Expressions page.");
+            }
         }
 
         public static void OnPopulateMainPage()
         {
-            // Clear page
+            if (_mainPage == null)
+            {
+                MelonLogger.Error("Cannot populate a null main page.");
+                return;
+            }
+
+            // Clear page to ensure it is empty
             _mainPage.RemoveAll();
 
-            // Create toggle button for enabling/disabling the mod
-            CreateBoolPreference(_mainPage, "Enable Mod", _modEnabledPref);
+            // Create the input field for the blend shape name
+            CreateStringInput(_mainPage, "BlendShape Name", (v) =>
+            {
+                _blendShapeName = v;
+            });
 
-            // Create crash button
-            CreateCrashButton(_mainPage);
-
-            // Add other custom menu creation code here
+            // Create the button to add a new toggle for the blend shape
+            CreateAddToggleButton(_mainPage);
         }
 
-        public static void CreateUniversalMenus(Page page)
+        private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Add your universal menu creation code here
+            if (_skinnedMeshRenderer != null)
+            {
+                int blendShapeIndex = _skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
+                if (blendShapeIndex >= 0)
+                {
+                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
+                    MelonLogger.Msg($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
+                }
+                else
+                {
+                    MelonLogger.Error($"Blend Shape '{blendShapeName}' not found.");
+                }
+            }
+            else
+            {
+                MelonLogger.Error("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
+            }
         }
     }
 
-    public class BlowerMod : MelonMod
+    public class ExpressionsMod : MelonMod
     {
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("Everyday Blower mod has started!");
+            MelonLogger.Msg("Expressions Mod Initialized");
             BoneMenuCreator.OnPrepareMainPage();
-            BoneMenuCreator.OpenMainPage();
-            BoneMenuCreator.OnPopulateMainPage();
         }
 
-        [Obsolete("OnApplicationStart is obsolete. Use OnInitializeMelon instead.")]
-        public override void OnApplicationStart()
+        public override void OnLateInitializeMelon()
         {
-            // This method is now obsolete, so it's left empty.
+            MelonLogger.Msg("Late Initialization of Expressions Mod");
+            BoneMenuCreator.OnPopulateMainPage();
+            BoneMenuCreator.OpenMainPage();
+        }
+
+        public override void OnSceneWasLoaded(int buildindex, string sceneName)
+        {
+            MelonLogger.Msg($"Scene Loaded: {sceneName} (Index: {buildindex})");
+        }
+
+        public override void OnSceneWasInitialized(int buildindex, string sceneName)
+        {
+            MelonLogger.Msg($"Scene Initialized: {sceneName} (Index: {buildindex})");
+        }
+
+        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
+        {
+            MelonLogger.Msg($"Scene Unloaded: {sceneName} (Index: {buildIndex})");
+        }
+
+        public override void OnUpdate()
+        {
+            // Handle updates here, if necessary
+        }
+
+        public override void OnFixedUpdate()
+        {
+            // Handle fixed updates here, if necessary
+        }
+
+        public override void OnLateUpdate()
+        {
+            // Handle late updates here, if necessary
+        }
+
+        public override void OnGUI()
+        {
+            // Handle GUI updates here, if necessary
+        }
+
+        public override void OnApplicationQuit()
+        {
+            MelonLogger.Msg("Expressions Mod is shutting down");
+        }
+
+        public override void OnPreferencesSaved()
+        {
+            MelonLogger.Msg("Preferences Saved");
+        }
+
+        public override void OnPreferencesLoaded()
+        {
+            MelonLogger.Msg("Preferences Loaded");
         }
     }
 }
