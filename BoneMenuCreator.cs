@@ -9,7 +9,6 @@ namespace Expressions.BoneMenu
     public static partial class BoneMenuCreator
     {
         private static Page _mainPage = null;
-        private static SkinnedMeshRenderer _skinnedMeshRenderer;
         private static string _blendShapeName = "";
         private static List<string> _blendShapeNames = new List<string>();  // List to store blend shape names
 
@@ -40,7 +39,7 @@ namespace Expressions.BoneMenu
                 if (!string.IsNullOrEmpty(_blendShapeName) && !_blendShapeNames.Contains(_blendShapeName))
                 {
                     _blendShapeNames.Add(_blendShapeName);
-                    CreateBlendShapeToggle(_mainPage, _blendShapeName);
+                    RefreshPage();
                 }
                 else
                 {
@@ -52,12 +51,6 @@ namespace Expressions.BoneMenu
         // Create a toggle for the blend shape
         public static void CreateBlendShapeToggle(Page page, string blendShapeName)
         {
-            if (_skinnedMeshRenderer == null)
-            {
-                LogError("SkinnedMeshRenderer is not assigned.");
-                return;
-            }
-
             // Create a toggle button for the blend shape
             page.CreateBool(blendShapeName, Color.white, false, (isEnabled) =>
             {
@@ -77,13 +70,6 @@ namespace Expressions.BoneMenu
             {
                 LogError("Failed to create Expressions page.");
                 return;
-            }
-
-            // Try to find the SkinnedMeshRenderer
-            _skinnedMeshRenderer = GameObject.Find("YourSkinnedMeshRendererObject")?.GetComponent<SkinnedMeshRenderer>();
-            if (_skinnedMeshRenderer == null)
-            {
-                LogError("SkinnedMeshRenderer not found. Please check the GameObject name.");
             }
         }
 
@@ -121,24 +107,39 @@ namespace Expressions.BoneMenu
             }
         }
 
+        private static void RefreshPage()
+        {
+            // Re-populate the main page to reflect the newly added blend shape
+            OnPopulateMainPage();
+        }
+
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            if (_skinnedMeshRenderer != null)
+            // Iterate over all GameObjects in the scene
+            foreach (GameObject obj in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
             {
-                int blendShapeIndex = _skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
+                // Recursively search all child objects
+                ToggleBlendShapeInGameObject(obj, blendShapeName, isEnabled);
+            }
+        }
+
+        private static void ToggleBlendShapeInGameObject(GameObject obj, string blendShapeName, bool isEnabled)
+        {
+            var skinnedMeshRenderer = obj.GetComponent<SkinnedMeshRenderer>();
+            if (skinnedMeshRenderer != null)
+            {
+                int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
                 if (blendShapeIndex >= 0)
                 {
-                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
-                    LogMessage($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
-                }
-                else
-                {
-                    LogError($"Blend Shape '{blendShapeName}' not found.");
+                    skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
+                    LogMessage($"Blend Shape '{blendShapeName}' on '{obj.name}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
                 }
             }
-            else
+
+            // Recursively check children
+            foreach (Transform child in obj.transform)
             {
-                LogError("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
+                ToggleBlendShapeInGameObject(child.gameObject, blendShapeName, isEnabled);
             }
         }
 
