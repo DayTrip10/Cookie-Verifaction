@@ -122,14 +122,11 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Get all active root game objects in the scene
-            var rootObjects = new List<GameObject>();
-            UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(rootObjects);
-
-            foreach (var obj in rootObjects)
+            // Get all root game objects in the scene
+            foreach (GameObject rootObject in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
             {
                 // Recursively search all child objects
-                ToggleBlendShapeInGameObject(obj, blendShapeName, isEnabled);
+                ToggleBlendShapeInGameObject(rootObject, blendShapeName, isEnabled);
             }
         }
 
