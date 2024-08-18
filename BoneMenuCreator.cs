@@ -152,19 +152,19 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Iterate over all root objects in the active scene
-            foreach (GameObject rootObject in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            // Find all SkinnedMeshRenderer components in the scene
+            var skinnedMeshRenderers = UnityEngine.Object.FindObjectsOfType<SkinnedMeshRenderer>();
+
+            foreach (var skinnedMeshRenderer in skinnedMeshRenderers)
             {
-                // Recursively search all child objects
-                ToggleBlendShapeInGameObject(rootObject, blendShapeName, isEnabled);
+                // Try to toggle the blend shape on each renderer
+                ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
             }
         }
 
-        private static void ToggleBlendShapeInGameObject(GameObject gameObject, string blendShapeName, bool isEnabled)
+        private static void ToggleBlendShapeInRenderer(SkinnedMeshRenderer skinnedMeshRenderer, string blendShapeName, bool isEnabled)
         {
-            // Get the SkinnedMeshRenderer component from the GameObject
-            var skinnedMeshRenderer = gameObject.GetComponent<SkinnedMeshRenderer>();
-            if (skinnedMeshRenderer)  // Simplified check for the component's existence
+            if (skinnedMeshRenderer)  // Ensure the renderer exists
             {
                 // Find the blend shape index by name
                 int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
@@ -174,18 +174,12 @@ namespace Expressions.BoneMenu
                     // Set the blend shape weight: 100% if enabled, 0% if disabled
                     float weight = isEnabled ? 100f : 0f;
                     skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
-                    LogMessage($"Blend Shape '{blendShapeName}' on '{gameObject.name}' set to {weight}%.");
+                    LogMessage($"Blend Shape '{blendShapeName}' on '{skinnedMeshRenderer.gameObject.name}' set to {weight}%.");
                 }
                 else
                 {
-                    LogError($"Blend Shape '{blendShapeName}' not found on '{gameObject.name}'.");
+                    LogError($"Blend Shape '{blendShapeName}' not found on '{skinnedMeshRenderer.gameObject.name}'.");
                 }
-            }
-
-            // Recursively check and apply to children
-            foreach (Transform child in gameObject.transform)
-            {
-                ToggleBlendShapeInGameObject(child.gameObject, blendShapeName, isEnabled);
             }
         }
 
@@ -236,55 +230,7 @@ namespace Expressions.BoneMenu
             BoneMenuCreator.OnPopulateMainPage();
             BoneMenuCreator.OpenMainPage();
         }
-
-        public override void OnSceneWasLoaded(int buildindex, string sceneName)
-        {
-            // Scene Loaded
-        }
-
-        public override void OnSceneWasInitialized(int buildindex, string sceneName)
-        {
-            // Scene Initialized
-        }
-
-        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
-        {
-            // Scene Unloaded
-        }
-
-        public override void OnUpdate()
-        {
-            // Handle updates here, if necessary
-        }
-
-        public override void OnFixedUpdate()
-        {
-            // Handle fixed updates here, if necessary
-        }
-
-        public override void OnLateUpdate()
-        {
-            // Handle late updates here, if necessary
-        }
-
-        public override void OnGUI()
-        {
-            // Handle GUI updates here, if necessary
-        }
-
-        public override void OnApplicationQuit()
-        {
-            // Application quitting
-        }
-
-        public override void OnPreferencesSaved()
-        {
-            // Preferences Saved
-        }
-
-        public override void OnPreferencesLoaded()
-        {
-            // Preferences Loaded
-        }
     }
 }
+
+       
