@@ -122,7 +122,7 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Get all root game objects in the scene
+            // Iterate over all root objects in the active scene
             foreach (GameObject rootObject in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
             {
                 // Recursively search all child objects
@@ -130,21 +130,30 @@ namespace Expressions.BoneMenu
             }
         }
 
-        private static void ToggleBlendShapeInGameObject(GameObject obj, string blendShapeName, bool isEnabled)
+        private static void ToggleBlendShapeInGameObject(GameObject gameObject, string blendShapeName, bool isEnabled)
         {
-            var skinnedMeshRenderer = obj.GetComponent<SkinnedMeshRenderer>();
+            // Get the SkinnedMeshRenderer component from the GameObject
+            SkinnedMeshRenderer skinnedMeshRenderer = gameObject.GetComponent<SkinnedMeshRenderer>();
             if (skinnedMeshRenderer != null)
             {
+                // Find the blend shape index by name
                 int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
-                if (blendShapeIndex >= 0)
+
+                if (blendShapeIndex >= 0)  // Ensure the blend shape exists
                 {
-                    skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
-                    LogMessage($"Blend Shape '{blendShapeName}' on '{obj.name}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
+                    // Set the blend shape weight: 100% if enabled, 0% if disabled
+                    float weight = isEnabled ? 100f : 0f;
+                    skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
+                    LogMessage($"Blend Shape '{blendShapeName}' on '{gameObject.name}' set to {weight}%.");
+                }
+                else
+                {
+                    LogError($"Blend Shape '{blendShapeName}' not found on '{gameObject.name}'.");
                 }
             }
 
-            // Recursively check children
-            foreach (Transform child in obj.transform)
+            // Recursively check and apply to children
+            foreach (Transform child in gameObject.transform)
             {
                 ToggleBlendShapeInGameObject(child.gameObject, blendShapeName, isEnabled);
             }
