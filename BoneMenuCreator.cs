@@ -122,8 +122,11 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Iterate over all GameObjects in the scene
-            foreach (GameObject obj in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())
+            // Get all active root game objects in the scene
+            var rootObjects = new List<GameObject>();
+            UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects(rootObjects);
+
+            foreach (var obj in rootObjects)
             {
                 // Recursively search all child objects
                 ToggleBlendShapeInGameObject(obj, blendShapeName, isEnabled);
@@ -154,8 +157,10 @@ namespace Expressions.BoneMenu
         {
             string serializedBlendShapes = string.Join(",", _blendShapeNames);
             MelonPreferences.SetEntryValue(PreferenceCategory, PreferenceKey, serializedBlendShapes);
+            LogMessage("[Expressions] Blend shapes saved!");
+
+            // Save preferences only once per session or major event
             MelonPreferences.Save();
-            LogMessage("Blend shapes saved.");
         }
 
         private static void LoadBlendShapes()
