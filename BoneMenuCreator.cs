@@ -11,10 +11,11 @@ namespace Expressions.BoneMenu
         private static Page _mainPage = null;
         private static SkinnedMeshRenderer _skinnedMeshRenderer;
         private static string _blendShapeName = "";
-        private static Dictionary<string, float> _blendShapeToggles = new Dictionary<string, float>();
+        private static List<string> _blendShapeNames = new List<string>();  // List to store blend shape names
 
         #region MENU CATEGORIES
 
+        // Create a text input for the blend shape name
         public static void CreateStringInput(Page page, string name, Action<string> onValueChanged)
         {
             var element = page.CreateString(name, Color.white, _blendShapeName, (v) =>
@@ -24,7 +25,32 @@ namespace Expressions.BoneMenu
             });
         }
 
-        public static void CreateBlendShapeSlider(Page page, string blendShapeName)
+        // Create the text input field with an add button next to it
+        public static void CreateStringInputWithAddButton(Page page)
+        {
+            // Create a text input for the blend shape name
+            CreateStringInput(page, "BlendShape Name", (v) =>
+            {
+                _blendShapeName = v;
+            });
+
+            // Create an add button next to the input
+            page.CreateFunction("+", Color.green, () =>
+            {
+                if (!string.IsNullOrEmpty(_blendShapeName) && !_blendShapeNames.Contains(_blendShapeName))
+                {
+                    _blendShapeNames.Add(_blendShapeName);
+                    CreateBlendShapeToggle(_mainPage, _blendShapeName);
+                }
+                else
+                {
+                    LogMessage("Blend shape name is empty or already added.");
+                }
+            });
+        }
+
+        // Create a toggle for the blend shape
+        public static void CreateBlendShapeToggle(Page page, string blendShapeName)
         {
             if (_skinnedMeshRenderer == null)
             {
@@ -32,38 +58,10 @@ namespace Expressions.BoneMenu
                 return;
             }
 
-            if (!_blendShapeToggles.ContainsKey(blendShapeName))
+            // Create a toggle button for the blend shape
+            page.CreateBool(blendShapeName, Color.white, false, (isEnabled) =>
             {
-                _blendShapeToggles[blendShapeName] = 0f; // Initialize the blend shape to 0%
-            }
-
-            var element = page.CreateFloat(blendShapeName, Color.white, _blendShapeToggles[blendShapeName], 0f, 100f, 1f, (v) =>
-            {
-                _blendShapeToggles[blendShapeName] = v;
-                SetBlendShapeWeight(blendShapeName, v);
-            });
-        }
-
-        public static void CreateAddBlendShapeButton(Page page)
-        {
-            page.CreateFunction("Add BlendShape Toggle", Color.green, () =>
-            {
-                if (!string.IsNullOrEmpty(_blendShapeName))
-                {
-                    CreateBlendShapeSlider(_mainPage, _blendShapeName);
-                }
-                else
-                {
-                    LogMessage("Blend shape name is empty.");
-                }
-            });
-        }
-
-        public static void CreateRefreshButton(Page page)
-        {
-            page.CreateFunction("Refresh Toggles", Color.yellow, () =>
-            {
-                RefreshBlendShapeToggles(_mainPage);
+                ToggleBlendShape(blendShapeName, isEnabled);
             });
         }
 
@@ -113,40 +111,25 @@ namespace Expressions.BoneMenu
             // Clear page to ensure it is empty
             _mainPage.RemoveAll();
 
-            // Create the input field for the blend shape name
-            CreateStringInput(_mainPage, "BlendShape Name", (v) =>
-            {
-                _blendShapeName = v;
-            });
-
-            // Create the button to add a new blend shape slider for the blend shape
-            CreateAddBlendShapeButton(_mainPage);
-
-            // Create the refresh button to reload the blend shape toggles
-            CreateRefreshButton(_mainPage);
+            // Create the input field with add button for the blend shape name
+            CreateStringInputWithAddButton(_mainPage);
 
             // Populate the existing blend shape toggles
-            RefreshBlendShapeToggles(_mainPage);
-        }
-
-        private static void RefreshBlendShapeToggles(Page page)
-        {
-            // Clear existing blend shape toggles
-            foreach (var blendShapeName in _blendShapeToggles.Keys)
+            foreach (var blendShapeName in _blendShapeNames)
             {
-                CreateBlendShapeSlider(page, blendShapeName);
+                CreateBlendShapeToggle(_mainPage, blendShapeName);
             }
         }
 
-        private static void SetBlendShapeWeight(string blendShapeName, float weight)
+        private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
             if (_skinnedMeshRenderer != null)
             {
                 int blendShapeIndex = _skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
                 if (blendShapeIndex >= 0)
                 {
-                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
-                    LogMessage($"Blend Shape '{blendShapeName}' set to {weight}%.");
+                    _skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, isEnabled ? 100f : 0f);
+                    LogMessage($"Blend Shape '{blendShapeName}' toggled to {(isEnabled ? "enabled" : "disabled")}.");
                 }
                 else
                 {
@@ -155,7 +138,7 @@ namespace Expressions.BoneMenu
             }
             else
             {
-                LogError("Cannot set Blend Shape weight because SkinnedMeshRenderer is null.");
+                LogError("Cannot toggle Blend Shape because SkinnedMeshRenderer is null.");
             }
         }
 
