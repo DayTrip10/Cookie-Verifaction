@@ -152,34 +152,51 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Find all SkinnedMeshRenderer components in the scene
-            var skinnedMeshRenderers = UnityEngine.Object.FindObjectsOfType<SkinnedMeshRenderer>();
+            // Define the specific path to the GameObject in the hierarchy
+            string[] objectPaths = {
+                "Character1/Head",  // Example path to a character's head
+                "Character2/Head",  // Another example path
+                "NPC1/Head"         // Example for an NPC
+            };
 
-            foreach (var skinnedMeshRenderer in skinnedMeshRenderers)
+            foreach (string path in objectPaths)
             {
-                // Try to toggle the blend shape on each renderer
-                ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
+                GameObject targetObject = GameObject.Find(path);
+                if (targetObject != null)
+                {
+                    SkinnedMeshRenderer skinnedMeshRenderer = targetObject.GetComponent<SkinnedMeshRenderer>();
+                    if (skinnedMeshRenderer != null)
+                    {
+                        // Try to toggle the blend shape on this object
+                        ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
+                    }
+                    else
+                    {
+                        LogError($"SkinnedMeshRenderer not found on GameObject '{path}'.");
+                    }
+                }
+                else
+                {
+                    LogError($"GameObject with path '{path}' not found.");
+                }
             }
         }
 
         private static void ToggleBlendShapeInRenderer(SkinnedMeshRenderer skinnedMeshRenderer, string blendShapeName, bool isEnabled)
         {
-            if (skinnedMeshRenderer)  // Ensure the renderer exists
-            {
-                // Find the blend shape index by name
-                int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
+            // Find the blend shape index by name
+            int blendShapeIndex = skinnedMeshRenderer.sharedMesh.GetBlendShapeIndex(blendShapeName);
 
-                if (blendShapeIndex >= 0)  // Ensure the blend shape exists
-                {
-                    // Set the blend shape weight: 100% if enabled, 0% if disabled
-                    float weight = isEnabled ? 100f : 0f;
-                    skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
-                    LogMessage($"Blend Shape '{blendShapeName}' on '{skinnedMeshRenderer.gameObject.name}' set to {weight}%.");
-                }
-                else
-                {
-                    LogError($"Blend Shape '{blendShapeName}' not found on '{skinnedMeshRenderer.gameObject.name}'.");
-                }
+            if (blendShapeIndex >= 0)  // Ensure the blend shape exists
+            {
+                // Set the blend shape weight: 100% if enabled, 0% if disabled
+                float weight = isEnabled ? 100f : 0f;
+                skinnedMeshRenderer.SetBlendShapeWeight(blendShapeIndex, weight);
+                LogMessage($"Blend Shape '{blendShapeName}' on '{skinnedMeshRenderer.gameObject.name}' set to {weight}%.");
+            }
+            else
+            {
+                LogError($"Blend Shape '{blendShapeName}' not found on '{skinnedMeshRenderer.gameObject.name}'.");
             }
         }
 
