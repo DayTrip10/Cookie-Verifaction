@@ -4,6 +4,7 @@ using BoneLib.BoneMenu;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SLZ.Marrow;
 
 namespace Expressions.BoneMenu
 {
@@ -152,35 +153,29 @@ namespace Expressions.BoneMenu
 
         private static void ToggleBlendShape(string blendShapeName, bool isEnabled)
         {
-            // Define the specific path to the GameObject in the hierarchy
-            string[] objectPaths = {
-                "Character1/Head",  // Example path to a character's head
-                "Character2/Head",  // Another example path
-                "NPC1/Head"         // Example for an NPC
-            };
+            // Find all GameObjects with your custom Avatar component in the scene
+            var avatars = UnityEngine.Object.FindObjectsOfType<SLZ.VRMK.Avatar>();  // Replace SLZ.VRMK with your correct namespace if different
 
-            foreach (string path in objectPaths)
+            foreach (var avatar in avatars)
             {
-                MelonLogger.Msg($"Attempting to find GameObject at path: {path}");
-                GameObject targetObject = GameObject.Find(path);
-                if (targetObject != null)
+                GameObject avatarObject = avatar.gameObject;
+                MelonLogger.Msg($"Found Avatar GameObject: {avatarObject.name}");
+
+                // Try to toggle the blend shape in each SkinnedMeshRenderer associated with the Avatar
+                ToggleBlendShapeInAvatar(avatarObject, blendShapeName, isEnabled);
+            }
+        }
+
+        private static void ToggleBlendShapeInAvatar(GameObject avatarObject, string blendShapeName, bool isEnabled)
+        {
+            // Find all SkinnedMeshRenderer components in the Avatar's children
+            SkinnedMeshRenderer[] skinnedMeshRenderers = avatarObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+
+            foreach (SkinnedMeshRenderer skinnedMeshRenderer in skinnedMeshRenderers)
+            {
+                if (skinnedMeshRenderer != null)
                 {
-                    MelonLogger.Msg($"Found GameObject: {targetObject.name}");
-                    SkinnedMeshRenderer skinnedMeshRenderer = targetObject.GetComponent<SkinnedMeshRenderer>();
-                    if (skinnedMeshRenderer != null)
-                    {
-                        MelonLogger.Msg($"Found SkinnedMeshRenderer on GameObject: {targetObject.name}");
-                        // Try to toggle the blend shape on this object
-                        ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
-                    }
-                    else
-                    {
-                        LogError($"SkinnedMeshRenderer not found on GameObject '{path}'.");
-                    }
-                }
-                else
-                {
-                    LogError($"GameObject with path '{path}' not found.");
+                    ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
                 }
             }
         }
