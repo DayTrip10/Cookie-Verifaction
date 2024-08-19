@@ -161,12 +161,15 @@ namespace Expressions.BoneMenu
 
             foreach (string path in objectPaths)
             {
+                MelonLogger.Msg($"Attempting to find GameObject at path: {path}");
                 GameObject targetObject = GameObject.Find(path);
                 if (targetObject != null)
                 {
+                    MelonLogger.Msg($"Found GameObject: {targetObject.name}");
                     SkinnedMeshRenderer skinnedMeshRenderer = targetObject.GetComponent<SkinnedMeshRenderer>();
                     if (skinnedMeshRenderer != null)
                     {
+                        MelonLogger.Msg($"Found SkinnedMeshRenderer on GameObject: {targetObject.name}");
                         // Try to toggle the blend shape on this object
                         ToggleBlendShapeInRenderer(skinnedMeshRenderer, blendShapeName, isEnabled);
                     }
