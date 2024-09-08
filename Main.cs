@@ -41,8 +41,8 @@ namespace cookieverifier
                 // If both objects are found, toggle their active states
                 if (gripNorm != null && gripModded != null)
                 {
-                    gripNorm.SetActive(false);  // Turn off Grip Norm
-                    gripModded.SetActive(true); // Turn on Grip Modded
+                    gripNorm.SetActive(false);  // Deactivate "Grip Norm"
+                    gripModded.SetActive(true); // Activate "Grip Modded"
                     objectsFound = true;        // Stop checking after objects are found
                 }
 
