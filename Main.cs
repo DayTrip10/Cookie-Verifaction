@@ -1,82 +1,54 @@
-﻿using Expressions.BoneMenu;
-using MelonLoader;
+﻿using MelonLoader;
+using UnityEngine;
+using System.Collections;
 
-namespace Expressions
+namespace cookieverifier
 {
+    // BuildInfo: Contains metadata for the mod
     public static class BuildInfo
     {
-        public const string Name = "Expressions"; // Name of the Mod.  (MUST BE SET)
-        public const string Description = "Expressions Menu for BONELAB Avatars"; // Description for the Mod.  (Set as null if none)
-        public const string Author = "DayTrip10"; // Author of the Mod.  (MUST BE SET)
-        public const string Company = null; // Company that made the Mod.  (Set as null if none)
-        public const string Version = "1.0.0"; // Version of the Mod.  (MUST BE SET)
-        public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
+        public const string Name = "CookieVerifier"; // Name of the Mod
+        public const string Description = "Cookie Verifier for Steam ID Whitelisting"; // Description of the Mod
+        public const string Author = "DayTrip10"; // Author of the Mod
+        public const string Company = null; // Company that made the Mod (null if none)
+        public const string Version = "1.0.0"; // Version of the Mod
+        public const string DownloadLink = null; // Download Link for the Mod (null if none)
     }
 
-    public class ExpressionsMod : MelonMod
+    // Main mod class extending MelonMod
+    public class CookieVerifierMod : MelonMod
     {
+        private bool objectsFound = false; // Flag to stop the loop once objects are found
+
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("Expressions Mod Initialized");
-            BoneMenuCreator.OnPrepareMainPage();
+            // Start checking for game objects only if the player is verified
+            if (WhitelistManager.IsPlayerVerified())
+            {
+                MelonCoroutines.Start(CheckForGripObjects());
+            }
         }
 
-        public override void OnLateInitializeMelon()
+        // Coroutine to check for the existence of the game objects every 5 seconds
+        private IEnumerator CheckForGripObjects()
         {
-            MelonLogger.Msg("Late Initialization of Expressions Mod");
-            BoneMenuCreator.OnPopulateMainPage();
-            BoneMenuCreator.OpenMainPage();
-        }
+            while (!objectsFound)
+            {
+                // Look for "Grip Norm" and "Grip Modded" objects in the scene
+                GameObject gripNorm = GameObject.Find("Grip Norm");
+                GameObject gripModded = GameObject.Find("Grip Modded");
 
-        public override void OnSceneWasLoaded(int buildindex, string sceneName)
-        {
-            MelonLogger.Msg($"Scene Loaded: {sceneName} (Index: {buildindex})");
-            // You might want to repopulate or update the BoneMenu depending on the scene
-        }
+                // If both objects are found, toggle their active states
+                if (gripNorm != null && gripModded != null)
+                {
+                    gripNorm.SetActive(false);  // Turn off Grip Norm
+                    gripModded.SetActive(true); // Turn on Grip Modded
+                    objectsFound = true;        // Stop checking after objects are found
+                }
 
-        public override void OnSceneWasInitialized(int buildindex, string sceneName)
-        {
-            MelonLogger.Msg($"Scene Initialized: {sceneName} (Index: {buildindex})");
-        }
-
-        public override void OnSceneWasUnloaded(int buildIndex, string sceneName)
-        {
-            MelonLogger.Msg($"Scene Unloaded: {sceneName} (Index: {buildIndex})");
-        }
-
-        public override void OnUpdate()
-        {
-            // Handle updates here, if necessary
-        }
-
-        public override void OnFixedUpdate()
-        {
-            // Handle fixed updates here, if necessary
-        }
-
-        public override void OnLateUpdate()
-        {
-            // Handle late updates here, if necessary
-        }
-
-        public override void OnGUI()
-        {
-            // Handle GUI updates here, if necessary
-        }
-
-        public override void OnApplicationQuit()
-        {
-            MelonLogger.Msg("Expressions Mod is shutting down");
-        }
-
-        public override void OnPreferencesSaved()
-        {
-            MelonLogger.Msg("Preferences Saved");
-        }
-
-        public override void OnPreferencesLoaded()
-        {
-            MelonLogger.Msg("Preferences Loaded");
+                // Wait for 5 seconds before checking again
+                yield return new WaitForSeconds(5f);
+            }
         }
     }
 }
